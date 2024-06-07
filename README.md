@@ -1,3 +1,2 @@
-# aind-capsule-template
+# SWDB 2024 Anatomy
 
-Basic structure of a capsule to be customized as needed.
