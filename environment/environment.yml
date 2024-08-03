@@ -1,0 +1,13 @@
+environment_version: 1
+credentials:
+- type: aws
+  id: 8rzhudXNwjEraeGf
+  description: AWS Assumable Role - aind-codeocean-user
+  access_key_id: AWS_ACCESS_KEY_ID
+  secret_access_key: AWS_SECRET_ACCESS_KEY
+  region: AWS_DEFAULT_REGION
+- type: api-key
+  id: m5o5tbpFolaJfowJ
+  description: Cave client credentials
+  key: API_KEY
+  secret: API_SECRET
