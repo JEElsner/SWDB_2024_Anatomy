@@ -9,7 +9,8 @@ warnings.filterwarnings('ignore')
 
 def load_em_skeleton_as_meshwork(skeleton_id):
     # skeleton_id: the root id of one skeleton
-    input_directory = "precomputed://gs://allen_neuroglancer_ccf/em_minnie65_v1078"
+    # input_directory = "precomputed://gs://allen_neuroglancer_ccf/em_minnie65_v1078" # cloud path
+    input_directory = "file://../data/ccf_em_minnie65_v1078" # capsule path
     cv_obj = cloudvolume.CloudVolume(input_directory, use_https = True) # Initialize cloud volume
     cv_sk = cv_obj.skeleton.get(skeleton_id) #load an example skeleton
     
@@ -26,7 +27,8 @@ def load_em_skeleton_as_meshwork(skeleton_id):
 
 def load_em_skeleton_as_df(skeleton_id):
     # skeleton_id: the root id of one skeleton
-    input_directory = "precomputed://gs://allen_neuroglancer_ccf/em_minnie65_v1078"
+    # input_directory = "precomputed://gs://allen_neuroglancer_ccf/em_minnie65_v1078" # cloud path
+    input_directory = "file://../data/ccf_em_minnie65_v1078" # capsule path
     cv_obj = cloudvolume.CloudVolume(input_directory, use_https = True) # Initialize cloud volume
     cv_sk = cv_obj.skeleton.get(skeleton_id) #load an example skeleton
     
@@ -54,7 +56,8 @@ def load_em_skeleton_as_df(skeleton_id):
     return skel_df
 
 def load_em_segmentprops_to_df():
-    input_directory = "precomputed://gs://allen_neuroglancer_ccf/em_minnie65_v1078"
+   # input_directory = "precomputed://gs://allen_neuroglancer_ccf/em_minnie65_v1078" # cloud path
+    input_directory = "file://../data/ccf_em_minnie65_v1078" # capsule path"
     cv_obj = cloudvolume.CloudVolume(input_directory, use_https = True) # Initialize cloud volume
     
     cf = CloudFiles(cv_obj.cloudpath)
@@ -88,7 +91,8 @@ def load_em_segmentprops_to_df():
 
 def load_lm_skeleton_as_meshwork(skeleton_id):
     # skeleton_id: the root id of one skeleton
-    input_directory = "precomputed://s3://aind-open-data/exaSPIM_609281_2022-11-03_13-49-18_reconstructions/precomputed"
+    # input_directory = "precomputed://s3://aind-open-data/exaSPIM_609281_2022-11-03_13-49-18_reconstructions/precomputed" # cloud path
+    input_directory = "file://../data/ccf_lm_exaSPIM" # capsule path
     cv_obj = cloudvolume.CloudVolume(input_directory) # Initialize cloud volume
     cv_sk = cv_obj.skeleton.get(skeleton_id) #load an example skeleton
     
