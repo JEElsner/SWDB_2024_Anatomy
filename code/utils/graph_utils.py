@@ -166,24 +166,3 @@ def get_vertices(skel, compartment_type, vertex_type):
         return [v for v in verts if skel.vertex_properties['compartment'][v] == compartment_type]
     else:
         return verts
-
-
-def get_skeleton(cv_dataset, obj_id):
-    cv_skel = cv_dataset.skeleton.get(obj_id)
-    skel = skeleton.Skeleton(
-        cv_skel.vertices, 
-        cv_skel.edges,
-        remove_zero_length_edges=False,
-        root=0,
-        vertex_properties=set_vertex_properties(cv_skel),
-    )
-    return skel
-
-
-def set_vertex_properties(cv_skel):
-    vertex_properties = {
-        "ccf": cv_skel.allenId,
-        "radius": cv_skel.radius,
-        "compartment": cv_skel.compartment,
-    }
-    return vertex_properties
