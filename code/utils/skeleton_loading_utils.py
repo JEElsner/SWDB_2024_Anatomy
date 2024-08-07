@@ -92,7 +92,7 @@ def load_em_segmentprops_to_df():
 def load_lm_skeleton_as_meshwork(skeleton_id):
     # skeleton_id: the root id of one skeleton
     # input_directory = "precomputed://s3://aind-open-data/exaSPIM_609281_2022-11-03_13-49-18_reconstructions/precomputed" # cloud path
-    input_directory = "file://../data/ccf_lm_exaSPIM" # capsule path
+    input_directory = "file://../data/exaSPIM_609281_2022-11-03_13-49-18_reconstructions" # capsule path
     cv_obj = cloudvolume.CloudVolume(input_directory) # Initialize cloud volume
     cv_sk = cv_obj.skeleton.get(skeleton_id) #load an example skeleton
     
