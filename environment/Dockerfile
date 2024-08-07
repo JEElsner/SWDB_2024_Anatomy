@@ -1,4 +1,4 @@
-# hash:sha256:b1a1d287f7b378b17127b6a85004e6b108a021db131f9ee0ca080ed1a59431f1
+# hash:sha256:6c97d1dbc5465bdec73485c93afcb509b1b3d54d599636d40ec96adec7daeaaa
 ARG REGISTRY_HOST
 FROM $REGISTRY_HOST/codeocean/jupyterlab:3.6.1-miniconda4.12.0-python3.9-ubuntu20.04
 
@@ -17,3 +17,10 @@ RUN pip install -U --no-cache-dir \
     numpy==1.26.4 \
     pandas==2.2.2 \
     skeleton-plot==0.0.10
+
+ADD "https://github.com/coder/code-server/releases/download/v4.9.0/code-server-4.9.0-linux-amd64.tar.gz" /.code-server/code-server.tar.gz
+	
+RUN cd /.code-server \
+	&& tar -xvf code-server.tar.gz \
+	&& rm code-server.tar.gz \
+	&& ln -s /.code-server/code-server-4.9.0-linux-amd64/bin/code-server  /usr/bin/code-server
