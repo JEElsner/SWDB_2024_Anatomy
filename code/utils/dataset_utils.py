@@ -47,7 +47,8 @@ def load_lm_datasets():
     skeletons = list()
     for key in DATASET_KEYS:
         prefix = f"{key}/precomputed/"
-        cv_dataset = CloudVolume(f"precomputed://s3://{BUCKET}/{prefix}")
+        # cv_dataset = CloudVolume(f"precomputed://s3://{BUCKET}/{prefix}")
+        cv_dataset = CloudVolume(f"file://../data/{key}")
         skeletons.extend(load_skeletons(cv_dataset, prefix + "skeleton/"))    
     return skeletons
 
