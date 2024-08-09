@@ -1,14 +1,16 @@
-import os
-import json
-import random
+from brainglobe_atlasapi import BrainGlobeAtlas
+from copy import deepcopy
 from multiprocessing import Pool
-
-import k3d
-import numpy as np
-import networkx as nx
 from tqdm import tqdm
-import seaborn as sns
-import matplotlib.pyplot as plt
+
+import json
+import k3d
+import math
+import networkx as nx
+import numpy as np
+import os
+
+ATLAS = BrainGlobeAtlas('allen_mouse_100um')
 
 
 def euclidean_distance(node1, node2):
@@ -149,20 +151,61 @@ def load_graphs(filepaths):
     return [graph for graph in graphs if graph is not None]
 
 
-def get_ccf_ids(skel, compartment_type=None, vertex_type=None):
+def get_ccf_ids(skel, compartment_type=None, vertex_type=None, depth=None):
+    skel = deepcopy(skel)
     vertices = get_vertices(skel, compartment_type, vertex_type)
-    return skel.vertex_properties["ccf"][vertices]
+    ccf_ids = skel.vertex_properties["ccf"][vertices]
+    if depth is not None:
+        return [get_ccf_id_by_depth(ccf_id, depth) for ccf_id in ccf_ids]
+    else:
+        return ccf_ids
 
 
 def get_vertices(skel, compartment_type, vertex_type):
-    # Special Case
+    # Special Cases
+    if compartment_type == 1:
+        return [skel.root]
+    elif not compartment_type and not vertex_type:
+        return skel.vertex_properties['compartment'] != -1
+
+    # General Cases
     if compartment_type and not vertex_type:
         return skel.vertex_properties['compartment'] == compartment_type
-
-    # General Case
-    assert vertex_type in ["branch_points", "end_points"]
-    verts = skel.end_points if vertex_type == "end_points" else skel.branch_points
-    if compartment_type:
-        return [v for v in verts if skel.vertex_properties['compartment'][v] == compartment_type]
     else:
-        return verts
+        assert vertex_type in ["branch_points", "end_points"]
+        verts = skel.end_points if vertex_type == "end_points" else skel.branch_points
+        if compartment_type:
+            vertex_compartments = skel.vertex_properties['compartment']
+            return [v for v in verts if vertex_compartments[v] == compartment_type]
+        else:
+            return verts
+
+
+def get_ccf_id_by_depth(ccf_id, depth):
+    if ccf_id in ATLAS.structures:
+        structures = ATLAS.structures[ccf_id]["structure_id_path"]
+        return structures[min(depth, len(structures) - 1)]
+    else:
+        return ccf_id
+
+
+def get_connectivity_matrix(skels, binary=False, depth=None):
+    # Initializations
+    ccf_ids_list = [
+        get_ccf_ids(
+            skel, compartment_type=2, vertex_type="end_points", depth=depth
+        )
+        for skel in skels
+    ]
+    regions = np.unique(np.concatenate(ccf_ids_list))
+    region_to_idx = dict({r: idx for idx, r in enumerate(regions)})
+
+    # Populate matrix
+    matrix = np.zeros((len(skels), len(region_to_idx)))
+    for i, ccf_ids in enumerate(ccf_ids_list):
+        ccf_ids, cnts = np.unique(ccf_ids, return_counts=True)
+        for j, ccf_id in enumerate(ccf_ids):
+            if not math.isnan(ccf_id):
+                matrix[i, region_to_idx[ccf_id]] = cnts[j]
+    idx_to_region = {idx: r for r, idx in region_to_idx.items()}
+    return (matrix > 0 if binary else matrix), idx_to_region

@@ -1,17 +1,32 @@
-import pandas as pd
-import numpy as np
-import cloudvolume
 from cloudfiles import CloudFiles
+from cloudvolume import CloudVolume
 from meshparty import skeleton
+
+import boto3
+import numpy as np
+import os
+import pandas as pd
 import skeleton_plot as skelplot
 import warnings
+
 warnings.filterwarnings('ignore')
 
+BUCKET = "aind-open-data"
+LM_DATASET_KEYS = [
+    "exaSPIM_609281_2022-11-03_13-49-18_reconstructions",
+    "exaSPIM_651324_2023-03-06_15-13-25_reconstructions",
+    "exaSPIM_653158_2023-06-01_20-41-38_reconstructions",
+    "exaSPIM_653980_2023-08-10_20-08-29_reconstructions",
+    "mouselight_reconstructions",
+]
+
+
+# -- Load em skeletons --
 def load_em_skeleton_as_meshwork(skeleton_id):
     # skeleton_id: the root id of one skeleton
     # input_directory = "precomputed://gs://allen_neuroglancer_ccf/em_minnie65_v1078" # cloud path
     input_directory = "file://../data/ccf_em_minnie65_v1078" # capsule path
-    cv_obj = cloudvolume.CloudVolume(input_directory, use_https = True) # Initialize cloud volume
+    cv_obj = CloudVolume(input_directory, use_https = True) # Initialize cloud volume
     cv_sk = cv_obj.skeleton.get(skeleton_id) #load an example skeleton
     
     sk = skeleton.Skeleton(cv_sk.vertices, 
@@ -25,11 +40,12 @@ def load_em_skeleton_as_meshwork(skeleton_id):
     
     return sk, conversion_factor
 
+
 def load_em_skeleton_as_df(skeleton_id):
     # skeleton_id: the root id of one skeleton
     # input_directory = "precomputed://gs://allen_neuroglancer_ccf/em_minnie65_v1078" # cloud path
     input_directory = "file://../data/ccf_em_minnie65_v1078" # capsule path
-    cv_obj = cloudvolume.CloudVolume(input_directory, use_https = True) # Initialize cloud volume
+    cv_obj = CloudVolume(input_directory, use_https = True) # Initialize cloud volume
     cv_sk = cv_obj.skeleton.get(skeleton_id) #load an example skeleton
     
     sk = skeleton.Skeleton(cv_sk.vertices, 
@@ -55,10 +71,11 @@ def load_em_skeleton_as_df(skeleton_id):
     
     return skel_df
 
+
 def load_em_segmentprops_to_df():
    # input_directory = "precomputed://gs://allen_neuroglancer_ccf/em_minnie65_v1078" # cloud path
     input_directory = "file://../data/ccf_em_minnie65_v1078" # capsule path"
-    cv_obj = cloudvolume.CloudVolume(input_directory, use_https = True) # Initialize cloud volume
+    cv_obj = CloudVolume(input_directory, use_https = True) # Initialize cloud volume
     
     cf = CloudFiles(cv_obj.cloudpath)
     
@@ -89,11 +106,12 @@ def load_em_segmentprops_to_df():
 
     return seg_df
 
+
 def load_lm_skeleton_as_meshwork(skeleton_id):
     # skeleton_id: the root id of one skeleton
     # input_directory = "precomputed://s3://aind-open-data/exaSPIM_609281_2022-11-03_13-49-18_reconstructions/precomputed" # cloud path
     input_directory = "file://../data/exaSPIM_609281_2022-11-03_13-49-18_reconstructions" # capsule path
-    cv_obj = cloudvolume.CloudVolume(input_directory) # Initialize cloud volume
+    cv_obj = CloudVolume(input_directory) # Initialize cloud volume
     cv_sk = cv_obj.skeleton.get(skeleton_id) #load an example skeleton
     
     sk = skeleton.Skeleton(cv_sk.vertices, 
@@ -108,3 +126,166 @@ def load_lm_skeleton_as_meshwork(skeleton_id):
     conversion_factor = 1 #for LM (data in microns )
     
     return sk, conversion_factor
+
+
+# -- Load lm skeletons --
+def load_lm_datasets():
+    """
+    Loads all of the light microscopy neurons across four exaspim datasets and
+    and the mouse light dataset.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    list[meshparty.skeleton.Skeleton]
+        Skeletons that represent light microscopy neurons.
+
+    """
+    skels = list()
+    print("Loading datasets...")
+    for key in LM_DATASET_KEYS:        
+        cv_dataset = CloudVolume(f"file://../data/{key}/")
+        skels.extend(load_skeletons(cv_dataset, key))
+        print("")
+    return skels
+
+
+def load_skeletons(cv_dataset, key):
+    """
+    Loads all skeletons from a cloudvolume dataset.
+
+    Parameters
+    ----------
+    cv_dataset : CloudVolume
+        Dataset that contains a set of skeletons.
+    key : str
+        Name of dataset containing skeletons to be loaded.
+
+    Returns
+    -------
+    list[meshparty.skeleton.Skeleton]
+        Skeletons from cloudvolume dataset.
+
+    """
+    skels = list()
+    skeleton_ids = get_skeleton_ids(key)
+    for i, skel_id in enumerate(skeleton_ids):
+        progress_bar(i + 1, len(skeleton_ids), key)
+        skels.append(get_skeleton(cv_dataset, skel_id))
+    return skels
+
+
+def get_skeleton_ids(key):
+    """
+    Extracts skeleton ids from directory containing precomputed skeleton
+    objects.
+
+    Parameters
+    ----------
+    key : str
+        Name of dataset containing skeletons to be loaded.
+
+    Returns
+    -------
+    list[int]
+        Skeleton ids extracted from "skeleton_paths".
+
+    """
+    path = f"/data/{key}/skeleton/"
+    return [int(f) for f in os.listdir(path) if f.isnumeric()]
+
+
+def get_skeleton(cv_dataset, skel_id):
+    """
+    Gets a skeleton from a cloudvolume dataset.
+
+    Parameters
+    ----------
+    cv_dataset : CloudVolume
+        Dataset to be read from.
+    skel_id : int
+        Single id of skeleton to be read.
+
+    Returns
+    -------
+    meshparty.skeleton.Skeleton
+        Skeleton from a cloudvolume dataset.
+
+    """
+    cv_skel = cv_dataset.skeleton.get(skel_id)
+    skel = skeleton.Skeleton(
+        cv_skel.vertices, 
+        cv_skel.edges,
+        remove_zero_length_edges=False,
+        root=0,
+        vertex_properties=set_vertex_properties(cv_skel),
+    )
+    return skel
+
+
+def set_vertex_properties(cv_skel):
+    """
+    Sets the vertex properties of mesh party skeleton.
+
+    Parameters
+    ----------
+    cv_skel : CloudVolume.skeleton
+        Skeleton to be initialized as a meshparty skeleton.
+
+    Returns
+    -------
+    dict
+        Vertex properties of skeleton.
+
+    """
+    vertex_properties = {
+        "ccf": cv_skel.allenId,
+        "compartment": cv_skel.compartment,
+        "radius": cv_skel.radius,
+    }
+    return vertex_properties
+
+
+def number_of_samples():
+    """
+    Returns the number of samples in the light microscopy dataset.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    int
+        Number of samples in the light microscopy dataset.
+
+    """
+    return len(LM_DATASET_KEYS)
+
+
+def progress_bar(current, total, process_id, bar_length=50):
+    """
+    Reports the progress of completing some process.
+
+    Parameters
+    ----------
+    current : int
+        Current iteration of process.
+    total : int
+        Total number of iterations to be completed
+    bar_length : int, optional
+        Length of progress bar. The default is 50.
+
+    Returns
+    -------
+    None
+
+    """
+    progress = int(current / total * bar_length)
+    bar = (
+        f"{process_id}:  [{'=' * progress}{' ' * (bar_length - progress)}] {current}/{total}"
+    )
+    print(f"\r{bar}", end="", flush=True)
