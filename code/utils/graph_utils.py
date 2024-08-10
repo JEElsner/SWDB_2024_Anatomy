@@ -197,15 +197,15 @@ def get_connectivity_matrix(skels, binary=False, depth=None):
         )
         for skel in skels
     ]
-    regions = np.unique(np.concatenate(ccf_ids_list))
-    region_to_idx = dict({r: idx for idx, r in enumerate(regions)})
+    regions, cnts = np.unique(np.concatenate(ccf_ids_list), return_counts=True)
+    region_to_idx = dict({r: idx for idx, r in enumerate(regions[cnts > 10])})
 
     # Populate matrix
     matrix = np.zeros((len(skels), len(region_to_idx)))
     for i, ccf_ids in enumerate(ccf_ids_list):
         ccf_ids, cnts = np.unique(ccf_ids, return_counts=True)
         for j, ccf_id in enumerate(ccf_ids):
-            if not math.isnan(ccf_id):
+            if not math.isnan(ccf_id) and ccf_id in region_to_idx.keys():
                 matrix[i, region_to_idx[ccf_id]] = cnts[j]
     idx_to_region = {idx: r for r, idx in region_to_idx.items()}
     return (matrix > 0 if binary else matrix), idx_to_region
