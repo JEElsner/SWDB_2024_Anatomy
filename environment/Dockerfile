@@ -9,6 +9,7 @@ ARG GIT_ACCESS_TOKEN
 COPY git-askpass /
 
 RUN pip install -U --no-cache-dir \
+    brainglobe_atlasapi \
     caveclient==5.24.0 \
     cloud-volume==10.2.2 \
     ipywidgets==8.1.3 \
