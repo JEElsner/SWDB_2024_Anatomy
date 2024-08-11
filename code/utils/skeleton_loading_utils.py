@@ -20,6 +20,26 @@ LM_DATASET_KEYS = [
     "mouselight_reconstructions",
 ]
 
+# load a skeleton from cloud volume with at least radious and compartment
+# vertex properties
+def load_cv_skeleton(root_id: int, cv_obj: CloudVolume):
+    """Loads skeleton from ID.
+    
+    Args:
+        root_id: cell ID
+        cv_obj: cloudvolume object
+    
+    Returns:
+        sk: skeleton in meshparty.skeleton.Skeleton format
+    """
+    cv_sk = cv_obj.skeleton.get(root_id)
+    sk = skeleton.Skeleton(cv_sk.vertices, 
+                                     cv_sk.edges, 
+                                     vertex_properties={'radius': cv_sk.radius,
+                                                        'compartment': cv_sk.compartment},  
+                                     root = len(cv_sk.edges), 
+                                     remove_zero_length_edges = False)
+    return sk
 
 # -- Load em skeletons --
 def load_em_skeleton_as_meshwork(skeleton_id):
