@@ -1,0 +1,16 @@
+name: swdb_anatomy  # Replace with the desired environment name
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - matplotlib
+  - numpy
+  - pip
+  - scikit-learn
+  - seaborn
+  - setuptools
+  - pip:
+      - caveclient
+      - meshparty
+      - nglui
+      - standard-transform
