@@ -55,11 +55,45 @@ def load_cv_skeleton(root_id: int, cv_obj: CloudVolume):
                                      cv_sk.edges, 
                                      vertex_properties={'radius': cv_sk.radius,
                                                         'compartment': cv_sk.compartment},  
-                                     root = len(cv_sk.edges), 
+                                     root = 0, # Note: the root is different
                                      remove_zero_length_edges = False)
     return sk
 
-# -- Load em skeletons --
+# -- Load specific skeletons for Supplemental Notebook --
+
+def load_em_skeleton_as_meshwork(skeleton_id):
+    # skeleton_id: the root id of one skeleton
+    cv_obj = CloudVolume(f"file://{data_root}/em_minnie65_v1078") 
+    cv_sk = cv_obj.skeleton.get(skeleton_id) #load an example skeleton
+    
+    sk = skeleton.Skeleton(cv_sk.vertices, 
+                       cv_sk.edges, 
+                       vertex_properties={'radius': cv_sk.radius,
+                                          'compartment': cv_sk.compartment}, 
+                       root = len(cv_sk.edges), # the final edge is root
+                       remove_zero_length_edges = False)
+
+    conversion_factor = 1000
+    
+    return sk, conversion_factor
+
+def load_lm_skeleton_as_meshwork(skeleton_id):
+    # skeleton_id: the root id of one skeleton
+    cv_obj = CloudVolume(f"file://{data_root}/exaSPIM_609281_2022-11-03_13-49-18_reconstructions")
+    cv_sk = cv_obj.skeleton.get(skeleton_id) #load an example skeleton
+    
+    sk = skeleton.Skeleton(cv_sk.vertices, 
+                           cv_sk.edges, 
+                           vertex_properties={'radius': cv_sk.radius,
+                                              'compartment': cv_sk.compartment,
+                                              'allenId': cv_sk.allenId}, 
+                           root = 0, 
+                           # root = len(sk_em.edges), # when the final edge is root
+                           remove_zero_length_edges = False)
+
+    conversion_factor = 1 #for LM (data in microns )
+    
+    return sk, conversion_factor
 
 
 def load_em_skeleton_as_df(skeleton_id):
