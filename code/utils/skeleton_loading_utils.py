@@ -11,24 +11,6 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-import platform
-platstring = platform.platform()
-
-if 'Darwin' in platstring:
-    # macOS 
-    data_root = "/Volumes/Brain2024/anatomy"
-elif 'Windows'  in platstring:
-    # Windows (replace with the drive letter of USB drive)
-    data_root = "E:/anatomy"
-elif ('amzn2' in platstring):
-    # then on AWS
-    data_root = "/data/"
-else:
-    # then your own linux platform
-    # EDIT location where you mounted hard drive
-    data_root = "/media/$USERNAME/Brain2024/anatomy"
-    
-
 BUCKET = "aind-open-data"
 LM_DATASET_KEYS = [
     "exaSPIM_609281_2022-11-03_13-49-18_reconstructions",
@@ -61,8 +43,9 @@ def load_cv_skeleton(root_id: int, cv_obj: CloudVolume):
 
 # -- Load specific skeletons for Supplemental Notebook --
 
-def load_em_skeleton_as_meshwork(skeleton_id):
+def load_em_skeleton_as_meshwork(skeleton_id, data_root):
     # skeleton_id: the root id of one skeleton
+    # data_root: path to the anatomy data for the current device
     cv_obj = CloudVolume(f"file://{data_root}/em_minnie65_v1078") 
     cv_sk = cv_obj.skeleton.get(skeleton_id) #load an example skeleton
     
@@ -77,8 +60,9 @@ def load_em_skeleton_as_meshwork(skeleton_id):
     
     return sk, conversion_factor
 
-def load_lm_skeleton_as_meshwork(skeleton_id):
+def load_lm_skeleton_as_meshwork(skeleton_id, data_root):
     # skeleton_id: the root id of one skeleton
+    # data_root: path to the anatomy data for the current device
     cv_obj = CloudVolume(f"file://{data_root}/exaSPIM_609281_2022-11-03_13-49-18_reconstructions")
     cv_sk = cv_obj.skeleton.get(skeleton_id) #load an example skeleton
     
@@ -96,8 +80,9 @@ def load_lm_skeleton_as_meshwork(skeleton_id):
     return sk, conversion_factor
 
 
-def load_em_skeleton_as_df(skeleton_id):
+def load_em_skeleton_as_df(skeleton_id, data_root):
     # skeleton_id: the root id of one skeleton
+    # data_root: path to the anatomy data for the current device
     input_directory = f"file://{data_root}/ccf_em_minnie65_v1078"
     cv_obj = CloudVolume(input_directory, use_https = True) # Initialize cloud volume
     cv_sk = cv_obj.skeleton.get(skeleton_id) #load an example skeleton
@@ -126,7 +111,8 @@ def load_em_skeleton_as_df(skeleton_id):
     return skel_df
 
 
-def load_em_segmentprops_to_df():
+def load_em_segmentprops_to_df(data_root):
+    # data_root: path to the anatomy data for the current device
     input_directory = f"file://{data_root}/ccf_em_minnie65_v1078"
     cv_obj = CloudVolume(input_directory, use_https = True) # Initialize cloud volume
     
