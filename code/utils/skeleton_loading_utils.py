@@ -191,7 +191,7 @@ def load_skeletons(cv_dataset, key):
     skels = list()
     skeleton_ids = get_skeleton_ids(key)
     for i, skel_id in enumerate(skeleton_ids):
-        progress_bar(i + 1, len(skeleton_ids), key)
+        progress_bar(i + 1, len(skeleton_ids), process_id=key)
         skels.append(get_skeleton(cv_dataset, skel_id))
     return skels
 
@@ -284,7 +284,7 @@ def number_of_samples():
     return len(LM_DATASET_KEYS)
 
 
-def progress_bar(current, total, process_id, bar_length=50):
+def progress_bar(current, total, process_id=None, bar_length=50):
     """
     Reports the progress of completing some process.
 
@@ -303,7 +303,8 @@ def progress_bar(current, total, process_id, bar_length=50):
 
     """
     progress = int(current / total * bar_length)
+    preamble = f"{process_id}:  " if process_id else ""
     bar = (
-        f"{process_id}:  [{'=' * progress}{' ' * (bar_length - progress)}] {current}/{total}"
+        f"{preamble}[{'=' * progress}{' ' * (bar_length - progress)}] {current}/{total}"
     )
     print(f"\r{bar}", end="", flush=True)
