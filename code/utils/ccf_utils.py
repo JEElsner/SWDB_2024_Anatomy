@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 
 
-CCF_ATLAS = pd.read_csv('/data/adult_mouse_ccf_structures.csv')
+#CCF_ATLAS = pd.read_csv('/data/adult_mouse_ccf_structures.csv')
 CCF_PROPERTY = [
     "acronym",
     "color_hex_triplet",
@@ -24,7 +24,7 @@ CCF_PROPERTY = [
 ]
 
 
-def get_ccf_property(ccf_id, ccf_property, depth=None, print_id=False):
+def get_ccf_property(CCF_ATLAS, ccf_id, ccf_property, depth=None, print_id=False):
     """
     Gets the value of the property for a given ccf id. For example, suppose
     that ccf_id=1000 and ccf_property="name", then this routine returns the
@@ -32,6 +32,8 @@ def get_ccf_property(ccf_id, ccf_property, depth=None, print_id=False):
 
     Parameters
     ----------
+    CCF_ATLAS: pd.DataFrame
+        A dataframe of the CCF atlas
     ccf_id : int
         Numerical ID of a ccf region.
     ccf_property : str
@@ -50,7 +52,7 @@ def get_ccf_property(ccf_id, ccf_property, depth=None, print_id=False):
 
     # Return property value
     if depth is not None:
-        ccf_id = get_ccf_id_by_depth(ccf_id, depth)
+        ccf_id = get_ccf_id_by_depth(CCF_ATLAS, ccf_id, depth)
 
     if ccf_id in CCF_ATLAS["id"]:
         return CCF_ATLAS.loc[CCF_ATLAS["id"] == ccf_id, ccf_property].iloc[0]
@@ -58,16 +60,16 @@ def get_ccf_property(ccf_id, ccf_property, depth=None, print_id=False):
         return "NaN"        
 
 
-def get_ccf_id_by_depth(ccf_id, depth):
+def get_ccf_id_by_depth(CCF_ATLAS, ccf_id, depth):
     if ccf_id in CCF_ATLAS["id"]:
-        ccf_id_hierarchy = get_ccf_property(ccf_id, "structure_id_path")
+        ccf_id_hierarchy = get_ccf_property(CCF_ATLAS, ccf_id, "structure_id_path")
         ccf_id_hierarchy = list(map(int, ccf_id_hierarchy.split("/")[1:-1]))
         return ccf_id_hierarchy[min(depth, len(ccf_id_hierarchy) - 1)]
     else:
         return ccf_id
 
     
-def get_ccf_ids(skel, compartment_type=None, vertex_type=None, depth=None):
+def get_ccf_ids(ccf_atlas, skel, compartment_type=None, vertex_type=None, depth=None):
     # Get ccf ids from "CCF_ATLAS"
     skel = deepcopy(skel)
     vertices = get_vertices(skel, compartment_type, vertex_type)
@@ -75,12 +77,12 @@ def get_ccf_ids(skel, compartment_type=None, vertex_type=None, depth=None):
 
     # Return ccf ids
     if depth is not None:
-        return [get_ccf_id_by_depth(ccf_id, depth) for ccf_id in ccf_ids]
+        return [get_ccf_id_by_depth(ccf_atlas, ccf_id, depth) for ccf_id in ccf_ids]
     else:
         return ccf_ids
 
 
-def is_valid(ccf_id):
+def is_valid(CCF_ATLAS, ccf_id):
     """
     Determines whether "ccf_id" is valid, meaning that it is not 'NaN' and it
     is an contained in "CCF_ATLAS["id"]".
@@ -121,12 +123,13 @@ def get_vertices(skel, compartment_type, vertex_type):
             return verts
 
 
-def get_connectivity_matrix(skels, compartment_type, binary=False, depth=None):
+def get_connectivity_matrix(ccf_atlas, skels, compartment_type, binary=False, depth=None):
     # Initializations
     ccf_ids_list = list()
     for skel in skels:
         ccf_ids_list.append(
             get_ccf_ids(
+                ccf_atlas,
                 skel,
                 compartment_type=compartment_type,
                 depth=depth,
