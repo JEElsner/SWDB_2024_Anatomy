@@ -13,10 +13,10 @@ warnings.filterwarnings('ignore')
 
 BUCKET = "aind-open-data"
 LM_DATASET_KEYS = [
-    "exaSPIM_609281_2022-11-03_13-49-18_reconstructions",
-    "exaSPIM_651324_2023-03-06_15-13-25_reconstructions",
-    "exaSPIM_653158_2023-06-01_20-41-38_reconstructions",
-    "exaSPIM_653980_2023-08-10_20-08-29_reconstructions",
+    "exaSPIM_609281_2022-11-03_13-49-18_reconstructions/precomputed",
+    "exaSPIM_651324_2023-03-06_15-13-25_reconstructions/precomputed",
+    "exaSPIM_653158_2023-06-01_20-41-38_reconstructions/precomputed",
+    "exaSPIM_653980_2023-08-10_20-08-29_reconstructions/precomputed",
     "mouselight_reconstructions",
 ]
 
