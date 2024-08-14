@@ -17,7 +17,7 @@ LM_DATASET_KEYS = [
     "exaSPIM_651324_2023-03-06_15-13-25_reconstructions/precomputed",
     "exaSPIM_653158_2023-06-01_20-41-38_reconstructions/precomputed",
     "exaSPIM_653980_2023-08-10_20-08-29_reconstructions/precomputed",
-    "mouselight_reconstructions",
+    "mouselight_reconstructions/precomputed",
 ]
 
 # load a skeleton from cloud volume with at least radious and compartment
@@ -33,12 +33,13 @@ def load_cv_skeleton(root_id: int, cv_obj: CloudVolume):
         sk: skeleton in meshparty.skeleton.Skeleton format
     """
     cv_sk = cv_obj.skeleton.get(root_id)
-    sk = skeleton.Skeleton(cv_sk.vertices, 
-                                     cv_sk.edges, 
-                                     vertex_properties={'radius': cv_sk.radius,
-                                                        'compartment': cv_sk.compartment},  
-                                     root = int(np.where(cv_sk.compartment==1)[0]), # Note: the root index is different between em and lm
-                                     remove_zero_length_edges = False)
+    sk = skeleton.Skeleton(
+        cv_sk.vertices, 
+        cv_sk.edges, 
+        vertex_properties={'radius': cv_sk.radius, 'compartment': cv_sk.compartment},
+        root=int(np.where(cv_sk.compartment==1)[0]), # Note: the root index is different between em and lm
+        remove_zero_length_edges=False,
+    )
     return sk
 
 # -- Load specific skeletons for Supplemental Notebook --
@@ -146,7 +147,7 @@ def load_em_segmentprops_to_df(data_root):
     return seg_df
 
 
-# -- Load lm skeletons --
+# -- Load LM skeletons --
 def load_lm_datasets():
     """
     Loads all of the light microscopy neurons across four exaspim datasets and
@@ -212,7 +213,7 @@ def get_skeleton_ids(key):
         Skeleton ids extracted from "skeleton_paths".
 
     """
-    path = f"/data/{key}skeleton/"
+    path = f"/data/{key}/skeleton/"
     return [int(f) for f in os.listdir(path) if f.isnumeric()]
 
 
