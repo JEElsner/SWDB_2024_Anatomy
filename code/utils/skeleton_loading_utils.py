@@ -148,14 +148,15 @@ def load_em_segmentprops_to_df(data_root):
 
 
 # -- Load LM skeletons --
-def load_lm_datasets():
+def load_lm_datasets(data_root):
     """
     Loads all of the light microscopy neurons across four exaspim datasets and
     and the mouse light dataset.
 
     Parameters
     ----------
-    None
+    data_root : str
+        path to the anatomy data for the current device
 
     Returns
     -------
@@ -166,13 +167,13 @@ def load_lm_datasets():
     skels = list()
     print("Loading datasets...")
     for key in LM_DATASET_KEYS:        
-        cv_dataset = CloudVolume(f"file://../data/{key}")
-        skels.extend(load_skeletons(cv_dataset, key))
+        cv_dataset = CloudVolume(f"file://{data_root}/{key}")
+        skels.extend(load_skeletons(cv_dataset, key, data_root))
         print("")
     return skels
 
 
-def load_skeletons(cv_dataset, key):
+def load_skeletons(cv_dataset, key, data_root):
     """
     Loads all skeletons from a cloudvolume dataset.
 
@@ -182,6 +183,8 @@ def load_skeletons(cv_dataset, key):
         Dataset that contains a set of skeletons.
     key : str
         Name of dataset containing skeletons to be loaded.
+    data_root : str
+        path to the anatomy data for the current device
 
     Returns
     -------
@@ -190,14 +193,14 @@ def load_skeletons(cv_dataset, key):
 
     """
     skels = list()
-    skeleton_ids = get_skeleton_ids(key)
+    skeleton_ids = get_skeleton_ids(key, data_root)
     for i, skel_id in enumerate(skeleton_ids):
         progress_bar(i + 1, len(skeleton_ids), process_id=key)
         skels.append(get_skeleton(cv_dataset, skel_id))
     return skels
 
 
-def get_skeleton_ids(key):
+def get_skeleton_ids(key, data_root):
     """
     Extracts skeleton ids from directory containing precomputed skeleton
     objects.
@@ -206,6 +209,8 @@ def get_skeleton_ids(key):
     ----------
     key : str
         Name of dataset containing skeletons to be loaded.
+    data_root : str
+        path to the anatomy data for the current device
 
     Returns
     -------
@@ -213,7 +218,7 @@ def get_skeleton_ids(key):
         Skeleton ids extracted from "skeleton_paths".
 
     """
-    path = f"/data/{key}/skeleton/"
+    path = f"{data_root}/{key}/skeleton/"
     return [int(f) for f in os.listdir(path) if f.isnumeric()]
 
 
