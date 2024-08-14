@@ -165,7 +165,7 @@ def load_lm_datasets():
     skels = list()
     print("Loading datasets...")
     for key in LM_DATASET_KEYS:        
-        cv_dataset = CloudVolume(f"file://../data/{key}/precomputed")
+        cv_dataset = CloudVolume(f"file://../data/{key}")
         skels.extend(load_skeletons(cv_dataset, key))
         print("")
     return skels
@@ -212,7 +212,7 @@ def get_skeleton_ids(key):
         Skeleton ids extracted from "skeleton_paths".
 
     """
-    path = f"/data/{key}/precomputed/skeleton/"
+    path = f"/data/{key}skeleton/"
     return [int(f) for f in os.listdir(path) if f.isnumeric()]
 
 
