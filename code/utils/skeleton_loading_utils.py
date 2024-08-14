@@ -37,7 +37,7 @@ def load_cv_skeleton(root_id: int, cv_obj: CloudVolume):
                                      cv_sk.edges, 
                                      vertex_properties={'radius': cv_sk.radius,
                                                         'compartment': cv_sk.compartment},  
-                                     root = 0, # Note: the root is different
+                                     root = int(np.where(cv_sk.compartment==1)[0]), # Note: the root index is different between em and lm
                                      remove_zero_length_edges = False)
     return sk
 
